@@ -99,6 +99,8 @@ void mainLoop()
  			 * I.e. send a message of type RECV_DONE_TYPE (the value of size field
  			 * does not matter in this case). 
  			 */
+
+            signal(RECV_DONE_TYPE);
 		}
 		/* We are done */
 		else
@@ -121,10 +123,16 @@ void mainLoop()
 void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory */
+
+        delete sharedMemPtr;
 	
 	/* TODO: Deallocate the shared memory chunk */
+
+        shmid=0;
 	
 	/* TODO: Deallocate the message queue */
+
+        msqid=0;
 }
 
 /**
@@ -134,8 +142,11 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 
 void ctrlCSignal(int signal)
 {
+    fprintf(stderr,"Ctrl C presses, cleaning up and exiting the program");
 	/* Free system V resources */
 	cleanUp(shmid, msqid, sharedMemPtr);
+    /*Exit the program*/
+    exit(0);
 }
 
 int main(int argc, char** argv)
@@ -146,6 +157,8 @@ int main(int argc, char** argv)
  	 * queues and shared memory before exiting. You may add the cleaning functionality
  	 * in ctrlCSignal().
  	 */
+
+    signal(SIGINT,ctrlCSignal);
 				
 	/* Initialize */
 	init(shmid, msqid, sharedMemPtr);
@@ -153,7 +166,9 @@ int main(int argc, char** argv)
 	/* Go to the main loop */
 	mainLoop();
 
-	/** TODO: Detach from shared memory segment, and deallocate shared memory and message queue (i.e. call cleanup) **/
+	/**! TODO: Detach from shared memory segment, and deallocate shared memory and message queue (i.e. call cleanup) **/
 		
+    cleanup();
+
 	return 0;
 }
