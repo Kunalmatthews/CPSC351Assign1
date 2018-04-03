@@ -30,8 +30,7 @@ const char recvFileName[] = "recvfile";
 void init(int& shmid, int& msqid, void*& sharedMemPtr)
 {
 	
-	/* TODO: 1. Create a file called keyfile.txt containing string "Hello world" (you may do
- 		    so manually or from the code).
+	/* TODO: 1. Create a file called keyfile.txt containing string "Hello world" (you may do so manually or from the code).
 	         2. Use ftok("keyfile.txt", 'a') in order to generate the key.
 		 3. Use the key in the TODO's below. Use the same key for the queue
 		    and the shared memory segment. This also serves to illustrate the difference
@@ -58,6 +57,7 @@ void mainLoop()
 {
 	/* The size of the mesage */
 	int msgSize = 0;
+
 	
 	/* Open the file for writing */
 	FILE* fp = fopen(recvFileName, "w");
@@ -79,7 +79,10 @@ void mainLoop()
      * NOTE: the received file will always be saved into the file called
      * "recvfile"
      */
+        
+        msgrcv(msqid, &pbm, sizeof(struct message),2,0);
 
+            
 	/* Keep receiving until the sender set the size to 0, indicating that
  	 * there is no more data to send
  	 */	
@@ -100,7 +103,7 @@ void mainLoop()
  			 * does not matter in this case). 
  			 */
 
-            signal(RECV_DONE_TYPE);
+            msgsnd(msqid, &pmb, sizeof(struct message), RECV_DONE_TYPE);
 		}
 		/* We are done */
 		else
@@ -124,7 +127,7 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory */
 
-        delete sharedMemPtr;
+        shmctl(shmid, IPC_RMID, NULL);
 	
 	/* TODO: Deallocate the shared memory chunk */
 
@@ -132,7 +135,7 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 	
 	/* TODO: Deallocate the message queue */
 
-        msqid=0;
+        msgctl (msqid, IPC_RMID, NULL);
 }
 
 /**
