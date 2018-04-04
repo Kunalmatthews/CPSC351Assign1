@@ -40,6 +40,35 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 		    may have the same key.
 	 */
 	
+	key_t key = ftok("keyfile.txt", 'a');
+	if (key < 0)
+	{
+		perror("ftok");
+		exit(-1);
+	}
+
+	
+	/* TODO: Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
+	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0644 | IPC_CREAT);
+	if (shmid == -1)
+	{
+		perror("shmget");
+		exit(-1);
+	}
+	/* TODO: Attach to the shared memory */
+	sharedMemPtr = shmat(shmid, (void *)0, 0);
+	if (sharedMemPtr == (char *)(-1)) {
+		perror("shmat");
+		exit(1);
+	}
+	/* TODO: Attach to the message queue */
+	msqid = msgget(key, 0666 | IPC_CREAT);
+
+	if (msqid < 0)
+	{
+		perror("msgget");
+		exit(1);
+	}
 
 	
 	/* TODO: Allocate a piece of shared memory. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
@@ -79,9 +108,15 @@ void mainLoop()
      * NOTE: the received file will always be saved into the file called
      * "recvfile"
      */
-        
-        msgrcv(msqid, &pbm, sizeof(struct message),2,0);
 
+        	/* A buffer to store message we will send to the receiver. */
+	message sndMsg; 
+	
+	/* A buffer to store message received from the receiver. */
+	message rcvMsg;;
+
+        msgrcv(msqid, &rcvMsg, sizeof(struct message),2,0);
+      
             
 	/* Keep receiving until the sender set the size to 0, indicating that
  	 * there is no more data to send
@@ -103,7 +138,7 @@ void mainLoop()
  			 * does not matter in this case). 
  			 */
 
-            msgsnd(msqid, &pmb, sizeof(struct message), RECV_DONE_TYPE);
+            msgsnd(msqid, &sndMsg, sizeof(struct message), RECV_DONE_TYPE);
 		}
 		/* We are done */
 		else
@@ -131,7 +166,7 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 	
 	/* TODO: Deallocate the shared memory chunk */
 
-        shmid=0;
+        shmdt(sharedMemPtr);
 	
 	/* TODO: Deallocate the message queue */
 
@@ -171,7 +206,7 @@ int main(int argc, char** argv)
 
 	/**! TODO: Detach from shared memory segment, and deallocate shared memory and message queue (i.e. call cleanup) **/
 		
-    cleanup();
+    cleanUp;
 
 	return 0;
 }

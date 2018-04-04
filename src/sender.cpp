@@ -1,4 +1,3 @@
-
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <stdio.h>
@@ -34,12 +33,38 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 		    is unique system-wide among all SYstem V objects. Two objects, on the other hand,
 		    may have the same key.
 	 */
-	
+
+	//DW: I did NOT create the file with code, it will need to be done manually or code added, either is acceptable
+
+	key_t key = ftok("keyfile.txt", 'a');
+	if (key < 0)
+	{
+		perror("ftok");
+		exit(-1);
+	}
 
 	
 	/* TODO: Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
+	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0644 | IPC_CREAT);
+	if (shmid == -1)
+	{
+		perror("shmget");
+		exit(-1);
+	}
 	/* TODO: Attach to the shared memory */
+	sharedMemPtr = shmat(shmid, (void *)0, 0);
+	if (sharedMemPtr == (char *)(-1)) {
+		perror("shmat");
+		exit(1);
+	}
 	/* TODO: Attach to the message queue */
+	msqid = msgget(key, 0666 | IPC_CREAT);
+
+	if (msqid < 0)
+	{
+		perror("msgget");
+		exit(1);
+	}
 	/* Store the IDs and the pointer to the shared memory region in the corresponding parameters */
 	
 }
@@ -54,6 +79,11 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory */
+	if (shmdt(sharedMemPtr) < 0)
+	{
+		perror("shmdt");
+		exit(-1);
+	}
 }
 
 /**
@@ -96,10 +126,21 @@ void send(const char* fileName)
 		/* TODO: Send a message to the receiver telling him that the data is ready 
  		 * (message of type SENDER_DATA_TYPE) 
  		 */
-		
+		sndMsg.mtype = SENDER_DATA_TYPE;
+		if (msgsnd(msqid, &sndMsg, sizeof(message) - sizeof(long), 0) < 0)
+		{
+			perror("msgsnd");
+			exit(-1);
+		}
 		/* TODO: Wait until the receiver sends us a message of type RECV_DONE_TYPE telling us 
  		 * that he finished saving the memory chunk. 
  		 */
+		if (msgrcv(msqid, &rcvMsg, sizeof(struct message) - sizeof(long), RECV_DONE_TYPE, 0) == -1) 
+		{
+			perror("(msgrcv) Error receiving message from receiver");
+			exit(1);
+		}
+		
 	}
 	
 
@@ -107,8 +148,10 @@ void send(const char* fileName)
  	  * Lets tell the receiver that we have nothing more to send. We will do this by
  	  * sending a message of type SENDER_DATA_TYPE with size field set to 0. 	
 	  */
-
-		
+if (msgsnd(msqid, &sndMsg, sizeof(struct message) - sizeof(long), 0) == -1)
+{
+	perror("(msgsnd) Error sending a message");
+}
 	/* Close the file */
 	fclose(fp);
 	
