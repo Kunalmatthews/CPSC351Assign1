@@ -43,31 +43,31 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 		exit(1);
 	}
 	else {
-		printf("key created successfully");
+		printf("key created successfully\n");
 	}
 
 	
 	/* TODO: Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
 
-	printf("Allocating shared memory");
+	printf("Allocating shared memory\n");
 	shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT);
 	if (shmid == -1)
 	{
 		perror("shmget");
 		exit(1);
 	}else {
-		printf("Allocated successfully");
+		printf("Allocated successfully\n");
 	}
 	
 	/* TODO: Attach to the shared memory */
 
-	printf("Attaching to shared memory");
+	printf("Attaching to shared memory\n");
 	sharedMemPtr = shmat(shmid, (void *)0, 0);
 	if (sharedMemPtr == (void *)-1) {
 		perror("shmat");
 		exit(1);
 	} else{
-		printf("Attached successfully");
+		printf("Attached successfully\n");
 	}
 	/* TODO: Attach to the message queue */
 
@@ -92,7 +92,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory */
-	printf("Dettaching from shared memory");
+	printf("Dettaching from shared memory\n");
 	if(shmdt(sharedMemPtr) == -1){
 	    perror("shmdt");
 	    exit(1);
@@ -143,13 +143,13 @@ void send(const char* fileName)
  		 */
 		sndMsg.mtype = SENDER_DATA_TYPE;
 
-		printf("Sending message");
+		printf("Sending message\n");
 		if (msgsnd(msqid, &sndMsg, sizeof(sndMsg), 0) == -1)
 		{
 			perror("msgsnd");
 			exit(1);
 		}else{
-			printf("Sent successfully");
+			printf("Sent successfully\n");
 		}
 		/* TODO: Wait until the receiver sends us a message of type RECV_DONE_TYPE 			telling us 
  		 * that he finished saving the memory chunk. 
@@ -173,7 +173,7 @@ void send(const char* fileName)
 	sndMsg.size = 0;
 	sndMsg.mtype = SENDER_DATA_TYPE;
 	
-	printf("Sending empty message back");
+	printf("Sending empty message back\n");
 	if(msgsnd(msqid, &sndMsg, sizeof(sndMsg), 0) == -1)
 	{
 		perror("msgsnd");

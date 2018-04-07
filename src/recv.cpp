@@ -54,7 +54,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 
 	
 	/* TODO: Allocate a piece of shared memory. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
-	printf("Allocating piece of shared memory");
+	printf("Allocating piece of shared memory\n");
 	if((shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, 0666 | IPC_CREAT)) == -1){
 	    perror("shmget");
 	    exit(1);
@@ -64,7 +64,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	
 	/* TODO: Attach to the shared memory */
 
-	printf("Attaching to shared memory");
+	printf("Attaching to shared memory\n");
 	sharedMemPtr = shmat(shmid, (void *)0, 0);
 	if(sharedMemPtr == (void *) -1){
 	    perror("shmat");
@@ -124,7 +124,7 @@ void mainLoop()
 
 	while(msgSize != 0)
 	{	
-		printf("Reading new message");
+		printf("Reading new message\n");
 		if(msgrcv(msqid, &rcvMsg, sizeof(rcvMsg), SENDER_DATA_TYPE, 0) == -1)
 		{
 			perror("msgrcv");
@@ -155,7 +155,7 @@ void mainLoop()
  			sndMsg.mtype = RECV_DONE_TYPE;
 			sndMsg.size = 0;
 			
-			printf("Sending empty message");
+			printf("Sending empty message\n");
 			if(msgsnd(msqid, &sndMsg, 0, 0) == -1)
 			{
 				perror("msgsnd");
@@ -185,7 +185,7 @@ void mainLoop()
 void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory **/
-	printf("Dettaching from shared memory");
+	printf("Dettaching from shared memory\n");
 	if(shmdt(sharedMemPtr) == -1){
 	    perror("dettach");
 	    exit(1);
@@ -193,7 +193,7 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
     	printf("Dettaching successfully!\n");
 	
 	/* TODO: Deallocate the shared memory chunk **/
-	printf("Deallocating the shared memory chunk");
+	printf("Deallocating the shared memory chunk\n");
 	if(shmctl(shmid, IPC_RMID, NULL) == -1){
 	    perror("shmctl");
 	    exit(1);
@@ -202,7 +202,7 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 	}
 	
 	/* TODO: Deallocate the message queue **/
-	printf("Deallocating the message queue");
+	printf("Deallocating the message queue\n");
    	 if(msgctl( msqid, IPC_RMID, NULL) == -1){
         perror("msgctl");
         exit(1);
@@ -221,7 +221,7 @@ void ctrlCSignal(int signal)
     
 	/* Free system V resources */
 	cleanUp(shmid, msqid, sharedMemPtr);
-	printf("Ctrl C pressed, cleaning up and exiting the program");
+	printf("Ctrl C pressed, cleaning up and exiting the program\n");
     	/*Exit the program*/
   
 }
