@@ -1,4 +1,17 @@
-main: sender.cpp
-	g++ sender.cpp recv.cpp -o main -std=c++11 -lboost_system -lcrypto -lssl -lcpprest `pkg-config gtkmm-3.0 sqlite3 webkit2gtk-4.0 --cflags --libs`
+all: sender recv 
 
+sender: sender.o
+	g++ sender.o -o sender
+
+recv: recv.o
+	g++ recv.o -o recv
+
+sender.o: sender.cpp
+	g++ -c sender.cpp
+	
+recv.o: recv.cpp
+	g++ -c recv.cpp
+	
+clean:
+	rm *.o sender recv  
 
